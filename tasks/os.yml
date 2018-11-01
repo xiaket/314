@@ -1,0 +1,27 @@
+---
+- name: set timezone
+  timezone:
+    name: "{{ timezone }}"
+  become: yes
+
+- name: Update All Packages
+  apt:
+    update_cache: yes
+    upgrade: yes
+
+- name: install packages
+  apt:
+    name: "{{ apt_packages }}"
+    state: present
+    install_recommends: no
+  become: yes
+
+- name: configure mount points
+  mount:
+    path: "{{ item.dir }}"
+    src: "UUID={{ item.uuid }}"
+    fstype: "{{ item.fstype }}"
+    state: mounted
+    opts: "{{ item.options }}"
+  become: yes
+  with_items: "{{ mounts }}"
