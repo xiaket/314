@@ -1,4 +1,26 @@
 ---
+- name: configure ssh service - absent
+  lineinfile:
+    path: ~/sshd_config
+    regexp: "{{ item }}"
+    state: absent
+  with_items:
+    - '^#.*'
+    - '^\s?$'
+    - 'X11Forwarding yes'
+
+- name: configure ssh service - present
+  lineinfile:
+    path: /etc/ssh/sshd_config
+    line: "{{ item }}"
+    state: present
+  with_items:
+    - 'AllowUsers pi'
+    - 'KbdInteractiveAuthentication no'
+    - 'PasswordAuthentication no'
+    - 'PubkeyAuthentication yes'
+  become: yes
+
 - name: set timezone
   timezone:
     name: "{{ timezone }}"
@@ -8,6 +30,7 @@
   apt:
     update_cache: yes
     upgrade: yes
+  become: yes
 
 - name: install packages
   apt:
@@ -25,3 +48,13 @@
     opts: "{{ item.options }}"
   become: yes
   with_items: "{{ mounts }}"
+
+- name: remove profile scripts
+  file:
+    path: "/etc/profile.d/{{ item }}"
+    state: absent
+  with_items:
+    - bash_completion.sh
+    - sshpwd.sh
+    - wifi-country.sh
+  become: yes

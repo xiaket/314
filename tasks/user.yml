@@ -1,0 +1,4 @@
+- name: disable motd messages
+  file:
+    path: '~/.hushlogin'
+    state: touch

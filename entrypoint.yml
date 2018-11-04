@@ -4,13 +4,15 @@
     common_mount_options: uid=1000,gid=1000,nodiratime,noexec,rw,nosuid,nodev,auto,async,relatime,nofail
     timezone: Australia/Melbourne
     apt_packages:
-      - git
-      - python3
-      - hfsplus
-      - hfsutils
-      - hfsprogs
       - exfat-fuse
       - exfat-utils
+      - git
+      - hfsplus
+      - hfsprogs
+      - hfsutils
+      - python3
+      - sysstat
+    apt_packages_to_purge:
     mounts:
       - uuid: 8ffc0ba7-06eb-3a67-963c-85fc3860a00c
         fstype: hfsplus
@@ -24,12 +26,15 @@
         fstype: exfat
         dir: /mnt/media
         options: "{{ common_mount_options }}"
+    nfs_mounts:
+      - /mnt/media
+      - /mnt/backup
   hosts: all
   user: pi
   tasks:
     - import_tasks: tasks/os.yml
-    #- import_tasks: tasks/docker.yml
     - import_tasks: tasks/nfs.yml
+    - import_tasks: tasks/user.yml
 
     - name: reboot
       shell: "sleep 1 && shutdown -r now +1"

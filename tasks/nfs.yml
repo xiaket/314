@@ -5,16 +5,20 @@
       - nfs-common
       - nfs-kernel-server
     state: present
+  become: true
 
-- name: Copy exports file.
-  template:
-    src: exports.j2
-    dest: /etc/exports
-    owner: root
-    group: root
-    mode: 0644
-  notify: reload nfs
+- name: configure nfs service
+  lineinfile:
+    path: /etc/exports
+    line: "{{ item }} {{ ansible_default_ipv4.network }}/24(rw,sync,wdelay,insecure,anonuid=1000,anongid=1000,all_squash)"
+    state: present
+    create: true
+  with_items: "{{ nfs_mounts }}"
+  become: yes
 
 - name: Ensure nfs is running.
-  service: "name={{ nfs_server_daemon }} state=started enabled=yes"
-  when: nfs_exports|length
+  service:
+    name: nfs-kernel-server
+    state: started
+    enabled: true
+  become: true
