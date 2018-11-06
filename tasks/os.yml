@@ -1,4 +1,9 @@
 ---
+- name: create cache_install_dir
+  file:
+    state: directory
+    path: "{{ install_cache_dir }}"
+
 - name: configure ssh service - absent
   lineinfile:
     path: ~/sshd_config

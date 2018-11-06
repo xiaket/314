@@ -2,24 +2,25 @@
 - name: Download docker install script
   get_url:
     url: https://get.docker.com
-    dest: /tmp/docker-install.sh
+    dest: "{{ install_cache_dir }}/docker-install.sh"
     mode: "a+x"
+  become: yes
+  register: install_sh
 
 - name: Run install script
-  shell: /bin/sh /tmp/docker-install.sh
+  shell: /bin/sh "{{ install_cache_dir }}/docker-install.sh"
   become: yes
-
-- name: Remove temporary file
-  file:
-    path: /tmp/docker-install.sh
-    state: absent
+  when: install_sh.changed
 
 - name: Set Docker to auto-start
+  service:
+    name: docker
+    enabled: true
+    state: started
   become: yes
-  service: name=docker enabled=true state=started
 
 - name: Add pi to the docker group
-  become: yes
   user:
     name: pi
     groups: docker
+  become: yes
