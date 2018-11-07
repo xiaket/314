@@ -2,3 +2,14 @@
   file:
     path: '~/.hushlogin'
     state: touch
+
+- name: create ssh dir and control master dir
+  file:
+    state: directory
+    path: ~/.ssh/sockets
+    mode: 0700
+
+- name: create ssh config file
+  copy:
+    src: ssh_config
+    dest: ~/.ssh/config

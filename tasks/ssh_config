@@ -1,0 +1,13 @@
+Host xiaket.org
+  User xiaket
+  IdentityFile ~/.ssh/pi_25519
+
+Host *
+  ControlMaster auto
+  ControlPath ~/.ssh/sockets/%r@%h-%p
+  ControlPersist 3600
+  ForwardAgent no
+  ForwardX11 no
+  Protocol 2
+  ServerAliveInterval 60
+  ServerAliveCountMax 30
