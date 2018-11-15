@@ -12,6 +12,7 @@
       - hfsutils
       - python3
       - sysstat
+      - vim
     apt_packages_to_purge:
     mounts:
       - uuid: 8ffc0ba7-06eb-3a67-963c-85fc3860a00c
@@ -30,13 +31,15 @@
       - /mnt/media
       - /mnt/backup
     install_cache_dir: /opt/install
+    swap_size: 4096
   hosts: all
   user: pi
   tasks:
     - import_tasks: tasks/os.yml
-    - import_tasks: tasks/nfs.yml
+    - import_tasks: tasks/services.yml
     - import_tasks: tasks/docker.yml
     - import_tasks: tasks/user.yml
+    #- import_tasks: tasks/photoprism.yml
 
     - name: reboot
       shell: "sleep 1 && shutdown -r now +1"

@@ -1,0 +1,89 @@
+---
+# NFS
+- name: Ensure NFS utilities are installed.
+  apt:
+    name:
+      - nfs-common
+      - nfs-kernel-server
+    state: present
+  become: true
+
+- name: configure nfs service
+  lineinfile:
+    path: /etc/exports
+    line: "{{ item }} {{ ansible_default_ipv4.network }}/24(rw,sync,wdelay,insecure,anonuid=1000,anongid=1000,all_squash)"
+    state: present
+    create: true
+  with_items: "{{ nfs_mounts }}"
+  become: yes
+
+- name: Ensure nfs is running.
+  service:
+    name: nfs-kernel-server
+    state: started
+    enabled: true
+  become: true
+
+# SSH
+- name: configure ssh service - absent
+  lineinfile:
+    path: ~/sshd_config
+    regexp: "{{ item }}"
+    state: absent
+  with_items:
+    - '^#.*'
+    - '^\s?$'
+    - 'X11Forwarding yes'
+
+- name: configure ssh service - present
+  lineinfile:
+    path: /etc/ssh/sshd_config
+    line: "{{ item }}"
+    state: present
+  with_items:
+    - 'AllowUsers pi'
+    - 'KbdInteractiveAuthentication no'
+    - 'PasswordAuthentication no'
+    - 'PubkeyAuthentication yes'
+  become: yes
+
+- name: restart ssh service
+  service:
+    name: ssh
+    state: restarted
+  become: true
+
+# DPHYS: swap as a service
+- name: setup swap size
+  lineinfile:
+    path: /etc/dphys-swapfile
+    line: "{{ item }}"
+    state: present
+  with_items:
+    - "CONF_SWAPSIZE={{ swap_size }}"
+    - "CONF_MAXSWAP={{ swap_size }}"
+  register: swap_size
+
+- name: enable swap size
+  service:
+    name: dphys-swapfile
+    state: restarted
+  become: true
+  when: swap_size.changed
+
+# sysstat
+- name: configure sar to enable statistics gathering
+  lineinfile:
+    path: /etc/default/sysstat
+    regex: '^ENABLED='
+    line: 'ENABLED="true"'
+    state: present
+  become: true
+  register: sysstat_service
+
+- name: reload sysstat service
+  service:
+    name: sysstat
+    state: restarted
+  become: true
+  when: sysstat_service.changed
