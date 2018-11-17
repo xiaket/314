@@ -5,4 +5,4 @@ set -o nounset
 set -o pipefail
 
 rm -f entrypoint.retry
-ansible-playbook -i "$1", entrypoint.yml || rm -f entrypoint.retry
+ANSIBLE_SSH_PIPELINING=1 ansible-playbook -i "$1", entrypoint.yml || rm -f entrypoint.retry
