@@ -1,0 +1,21 @@
+{
+  "device_name": "Raspberry Pi",
+  "listening_port": 0,
+  "storage_path": "{HOME}/.config/resilio-sync/storage",
+  "pid_file": "{HOME}/.config/resilio-sync/sync.pid",
+  "use_upnp": true,
+  "download_limit": 0,
+  "upload_limit": 0,
+  "directory_root": "/mnt/media/Sync",
+  "directory_root_policy": "all",
+  "webui": {
+    "listen": "0.0.0.0:8888",
+    "login": "admin",
+    "password": "admin",
+    "allow_empty_password": true,
+    "force_https": true,
+    "ssl_certificate": "{HOME}/.config/resilio-sync/private/fullchain.pem",
+    "ssl_private_key": "{HOME}/.config/resilio-sync/private/privatekey.pem"
+  },
+  "send_statistics": false
+}

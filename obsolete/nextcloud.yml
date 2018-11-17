@@ -1,0 +1,156 @@
+# taken from https://github.com/jschaul/ansible-nextcloud-pi
+# ref: http://ifahrentholz.de/2016/install-nextcloud-on-raspberry/
+- name: setup variables
+  set_fact:
+    packages:
+      - curl
+      - git
+      - expect
+      - mariadb-server
+      - nginx
+      - nginx-extras
+      - openssl
+      - php7.0-fpm
+      - php7.0-dev
+      - php7.0-cli
+      - php7.0-apcu
+      - php7.0-intl
+      - php7.0-curl
+      - php7.0-mysql
+      - php7.0-zip
+      - php7.0-mbstring
+      - php7.0-gd
+      - php7.0-xml
+      - php7.0-json
+      - php7.0-common
+      - php7.0-mysql
+      - ssl-cert
+      - libapr1
+      - libtool
+      - libcurl4-openssl-dev
+      - memcached
+      - varnish
+    fpm_settings:
+      - { name: 'expose_php', value: 'Off' }
+      - { name: 'max_execution_time', value: '30' }
+      - { name: 'memory_limit', value: '128M' }
+    fpm_pool_settings:
+      - { name: 'listen', value: '127.0.0.1:9000' }
+      - { name: 'listen.backlog', value: '0' }
+      - { name: 'pm', value: 'static' }
+      - { name: 'pm.max_children', value: '100' }
+      - { name: 'pm.max_requests', value: '128' }
+      - { name: 'pm.status_path', value: '/status' }
+      - { name: 'ping.path', value: '/ping' }
+      - { name: 'request_terminate_timeout', value: '90' }
+      - { name: 'rlimit_files', value: '65535' }
+      - { name: 'rlimit_core', value: 'unlimited' }
+      - { name: 'catch_workers_output', value: 'yes' }
+    nextcloud_dir: /var/www/nextcloud
+    nextcloud_version: "14.0.3"
+
+- name: "Ensure dotdeb GnuPG key installed"
+  apt_key: url="https://www.dotdeb.org/dotdeb.gpg" state=present
+  become: yes
+
+- name: Add repositorty
+  apt_repository:
+    repo: 'deb http://mirrordirector.raspbian.org/raspbian/ stretch main contrib non-free rpi'
+    state: present
+    update_cache: yes
+  become: yes
+
+- name: Install packages
+  apt:
+    pkg: "{{ packages }}"
+    state: present
+    force: yes
+  become: yes
+
+- name: Setup /etc/php/7.0/fpm/php.ini
+  lineinfile:
+    dest: /etc/php/7.0/fpm/php.ini
+    regexp: "^;?{{ item.name }} ="
+    line: "{{ item.name  }} = {{ item.value }}"
+  with_items: "{{ fpm_settings }}"
+  become: yes
+
+- name: Setup /etc/php/7.0/fpm/pool.d/www.conf
+  lineinfile:
+    dest: /etc/php/7.0/fpm/pool.d/www.conf
+    regexp: "^;?{{ item.name }} ="
+    line: "{{ item.name  }} = {{ item.value }}"
+  with_items: "{{ fpm_pool_settings }}"
+  become: yes
+
+- name: Remove temp dir
+  file:
+    path: /tmp/nextcloud
+    state: absent
+  when: false
+
+- name: Clone repo
+  git:
+    repo: "https://github.com/nextcloud/server.git"
+    dest: "/tmp/nextcloud"
+    version: "v{{ nextcloud_version }}"
+    accept_hostkey: yes
+  when: false
+
+- name: sync contents into app root
+  synchronize:
+    src: "/tmp/nextcloud/"
+    dest: "{{ nextcloud_dir }}/"
+    owner: no
+    group: no
+    rsync_opts:
+      - "--exclude=.git"
+  delegate_to: "{{ inventory_hostname }}"
+  become: yes
+
+- name: change ownership of nextcloud dir
+  file:
+    path: "{{ nextcloud_dir }}/"
+    owner: www-data
+    group: www-data
+    recurse: yes
+  become: yes
+
+- name: "Copy nginx virtual host configuration"
+  template:
+    src: nextcloud_nginx.conf
+    dest: "/etc/nginx/sites-enabled"
+    force: yes
+  become: yes
+
+- name: Remove default site
+  file:
+    path: /etc/nginx/sites-enabled/default
+    state: absent
+  become: yes
+
+- name: Nextcloud installation wizard
+  command: "php occ maintenance:install --database mysql --database-name nextc --database-user root --database-pass '' --admin-user xiaket --admin-pass password"
+  args:
+    chdir: "{{ nextcloud_dir }}"
+    creates: "{{ nextcloud_dir }}/config/config.php"
+  become_user: www-data
+  become: True
+
+- name: Add cron jobs
+  cron:
+    name: nextcloud cron
+    minute: 15/*
+    user: www-data
+    job: "php -f /var/www/nextcloud/cron.php"
+  become_user: www-data
+  become: True
+
+- name: restart services
+  service:
+    name: php7.0-fpm
+    state: restarted
+  become: yes
+  with_items:
+    - php7.0-fpm
+    - nginx

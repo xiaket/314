@@ -1,0 +1,122 @@
+# From https://github.com/dsegurag/ansible.raspberrypi.resilio-sync
+- name: install build dependencies
+  apt:
+    name:
+      - libffi-dev
+      - libssl-dev
+      - python-dev
+      - python-pip
+      - python-setuptools
+    install_recommends: no
+  become: yes
+
+- name: install pyOpenSSL
+  command: pip install pyOpenSSL
+  become: yes
+
+- name: resilio-sync key
+  apt_key:
+    url: https://linux-packages.resilio.com/resilio-sync/key.asc
+    validate_certs: yes
+    state: present
+  become: yes
+
+- name: resilio-sync repository
+  apt_repository:
+    repo: deb [arch=armhf] http://linux-packages.resilio.com/resilio-sync/deb resilio-sync non-free
+    state: present
+    update_cache: yes
+    mode: 0644
+    validate_certs: yes
+    filename: resilio-sync
+  become: yes
+
+- name: resilio-sync package
+  apt:
+    update_cache: yes
+    cache_valid_time: 3600
+    name: resilio-sync
+    state: present
+  become: yes
+
+- name: resilio-sync user service config
+  replace:
+    path: /usr/lib/systemd/user/resilio-sync.service
+    regexp: '^WantedBy=multi-user.target$'
+    replace: 'WantedBy=default.target'
+  become: yes
+
+- name: resilio-sync user service config
+  replace:
+    path: /usr/lib/systemd/user/resilio-sync.service
+    regexp: '^PIDFile=%h/.config/resilio-sync/sync.pid$'
+    replace: '#PIDFile=%h/.config/resilio-sync/sync.pid'
+  become: yes
+
+- name: resilio-sync certificates path
+  file:
+    path: "~/.config/resilio-sync/private"
+    state: directory
+    mode: 0700
+
+- name: generate an OpenSSL private key
+  openssl_privatekey:
+    path: "~/.config/resilio-sync/private/privatekey.pem"
+    size: 4096
+    type: RSA
+    mode: 0600
+
+- name: generate an OpenSSL csr
+  openssl_csr:
+    path: "~/.config/resilio-sync/private/raspberrypi.csr"
+    privatekey_path: "~/.config/resilio-sync/private/privatekey.pem"
+    common_name: raspberrypi
+    mode: 0600
+
+- name: generate a self signed OpenSSL certificate
+  openssl_certificate:
+    path: "~/.config/resilio-sync/private/fullchain.pem"
+    privatekey_path: "~/.config/resilio-sync/private/privatekey.pem"
+    csr_path: "~/.config/resilio-sync/private/raspberrypi.csr"
+    provider: selfsigned
+    mode: 0600
+
+- name: resilio-sync config file
+  copy:
+    dest: "/etc/resilio-sync/user_config.json"
+    src: resilio_config.json
+    group: root
+    mode: 0644
+    owner: root
+  become: yes
+  register: sys_config
+
+- name: check resilio-sync config file
+  stat:
+    path: "~/.config/resilio-sync/config.json"
+  when:
+    - sys_config.changed
+  register: user_config
+
+- name: delete resilio-sync config file
+  file:
+    path: "~/.config/resilio-sync/config.json"
+    state: absent
+  when:
+    - sys_config.changed
+    - user_config.stat.exists
+
+- name: resilio-sync system service
+  systemd:
+    name: resilio-sync
+    state: stopped
+    enabled: no
+    scope: system
+  become: yes
+
+- name: resilio-sync user service
+  systemd:
+    name: resilio-sync
+    state: restarted
+    enabled: yes
+    scope: user
