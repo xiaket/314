@@ -1,6 +1,6 @@
 ---
 # NFS
-- name: Ensure NFS utilities are installed.
+- name: Install NFS utilities
   apt:
     name:
       - nfs-common
@@ -20,7 +20,7 @@
 - name: Ensure nfs is running.
   service:
     name: nfs-kernel-server
-    state: started
+    state: restarted
     enabled: true
   become: true
 
@@ -59,6 +59,7 @@
     path: /etc/dphys-swapfile
     line: "{{ item }}"
     state: present
+  become: true
   with_items:
     - "CONF_SWAPSIZE={{ swap_size }}"
     - "CONF_MAXSWAP={{ swap_size }}"

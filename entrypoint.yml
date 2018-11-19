@@ -15,15 +15,15 @@
       - vim
     apt_packages_to_purge:
     mounts:
-      - uuid: 8ffc0ba7-06eb-3a67-963c-85fc3860a00c
+      - label: TMc
         fstype: hfsplus
         dir: /mnt/tmachine
         options: "force,{{ common_mount_options }}"
-      - uuid: B4D9-9D02
+      - label: Backup
         fstype: exfat
         dir: /mnt/backup
         options: "{{ common_mount_options }}"
-      - uuid: C4EF-D50B
+      - label: Media
         fstype: exfat
         dir: /mnt/media
         options: "{{ common_mount_options }}"
@@ -37,10 +37,5 @@
   tasks:
     - import_tasks: tasks/os.yml
     - import_tasks: tasks/services.yml
-    - import_tasks: tasks/docker.yml
     - import_tasks: tasks/user.yml
-    #- import_tasks: tasks/photoprism.yml
-
-    - name: reboot
-      shell: "sleep 1 && shutdown -r now +1"
-      when: false
+    - import_tasks: tasks/seafile.yml
