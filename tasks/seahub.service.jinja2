@@ -1,0 +1,13 @@
+[Unit]
+Description=Seafile hub
+After=seafile.service
+
+[Service]
+Type=forking
+ExecStart={{ root_dir }}/seafile-server-latest/seahub.sh start
+ExecStop={{ root_dir }}/seafile-server-latest/seahub.sh stop
+User=pi
+Group=pi
+
+[Install]
+WantedBy=multi-user.target

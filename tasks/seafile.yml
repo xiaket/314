@@ -1,0 +1,72 @@
+---
+- name: setup variables
+  set_fact:
+    version: 6.3.4
+    packages:
+      - python2.7
+      - python-imaging
+      - python-ldap
+      - python-requests
+      - python-setuptools
+      - python-urllib3
+      - sqlite3
+    data_dir: /mnt/media/Seafile
+    root_dir: /var/lib/seafile
+
+- name: Install dependencies
+  apt:
+    pkg: "{{ packages }}"
+    state: present
+  become: yes
+
+- name: create directory structure
+  file:
+    path: /var/lib/seafile
+    state: directory
+    mode: 0700
+    owner: pi
+    group: pi
+  become: yes
+  with_items:
+    - "{{ root_dir }}"
+    - "{{ data_dir }}"
+
+- name: Download release file
+  get_url:
+    url: "https://github.com/haiwen/seafile-rpi/releases/download/v{{ version }}/seafile-server_{{ version }}_stable_pi.tar.gz"
+    dest: /tmp/seafile_server.tgz
+  register: release_download
+
+- name: Extract release file
+  unarchive:
+    src: /tmp/seafile_server.tgz
+    remote_src: true
+    dest: "{{ root_dir }}"
+  when: release_download.changed
+
+- name: Run setup
+  command: /{{ root_dir }}/seafile-server-{{ version }}/setup-seafile.sh auto -n rpi -i {{ inventory_hostname }} -p 8082 -d {{ data_dir }}
+  args:
+    chdir: "/{{ root_dir }}/seafile-server-{{ version }}"
+    creates: "/{{ root_dir }}/seafile-data"
+
+- name: Copy service configuration
+  template:
+    src: "{{ item.src }}"
+    dest: "/etc/systemd/system/{{ item.dst }}"
+  become: yes
+  with_items:
+    - src: seafile.service.jinja2
+      dst: seafile.service
+    - src: seahub.service.jinja2
+      dst: seahub.service
+
+- name: Enable services
+  service:
+    name: "{{ item }}"
+    enabled: true
+    state: started
+  become: yes
+  with_items:
+    - seafile
+    - seahub
