@@ -1,0 +1,83 @@
+# TimeMachine
+- name: setup variables
+  set_fact:
+    version: 3.1.11
+    packages:
+      - libevent-dev
+      - libssl-dev
+      - libgcrypt11-dev
+      - libkrb5-dev
+      - libdb-dev
+      - libtdb-dev
+      - libcrack2-dev
+    tmachine_dir: /mnt/tmachine
+
+- name: Download release file
+  get_url:
+    url: "http://prdownloads.sourceforge.net/netatalk/netatalk-{{ version }}.tar.gz"
+    dest: /tmp/netatalk.tgz
+  register: release_download
+
+- name: Extract release file
+  unarchive:
+    src: /tmp/netatalk.tgz
+    remote_src: true
+    dest: /tmp
+  when: release_download.changed
+
+- name: Install dependencies
+  apt:
+    pkg: "{{ packages }}"
+    state: present
+  become: yes
+  when: release_download.changed
+
+- name: configure
+  command: ./configure --with-init-style=debian-systemd --without-libevent --with-cracklib --enable-krbV-uam --with-pam-confdir=/etc/pam.d --with-dbus-daemon=/usr/bin/dbus-daemon --with-dbus-sysconf-dir=/etc/dbus-1/system.d
+  args:
+    chdir: "/tmp/netatalk-{{ version }}/"
+    creates: "/tmp/netatalk-{{ version }}/Makefile"
+  when: release_download.changed
+
+- name: make
+  command: make
+  args:
+    chdir: "/tmp/netatalk-{{ version }}/"
+  when: release_download.changed
+
+- name: make install
+  command: make
+  args:
+    chdir: "/tmp/netatalk-{{ version }}/"
+  become: yes
+  when: release_download.changed
+
+- name: create avahi config file
+  copy:
+    src: tmc.service
+    dest: /etc/avahi/services/afpd.service
+  become: yes
+
+- name: Create service configuration
+  template:
+    src: tmc_afp.conf.jinja2
+    dest: /usr/local/etc/afp.conf
+  become: yes
+
+- name: configure nsswitch file
+  lineinfile:
+    path: /etc/nsswitch.conf
+    regexp: "hosts:.*"
+    line: "hosts: files mdns4_minimal [NOTFOUND=return] dns mdns4 mdns"
+    state: present
+  become: true
+
+- name: reload related service
+  service:
+    name: "{{ item }}"
+    state: started
+    enabled: true
+  become: true
+  with_items:
+    - avahi-daemon
+    - netatalk
