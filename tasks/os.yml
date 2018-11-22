@@ -35,7 +35,7 @@
     src: "LABEL={{ item.label }}"
     fstype: "{{ item.fstype }}"
     state: mounted
-    opts: "{{ item.options }}"
+    opts: "{{ mount_options }}"
   become: yes
   with_items: "{{ mounts }}"
 

@@ -1,7 +1,7 @@
 ---
 - name: Raspberry Pi configuration
   vars:
-    common_mount_options: uid=1000,gid=1000,nodiratime,noexec,rw,nosuid,nodev,auto,async,relatime,nofail
+    mount_options: uid=1000,gid=1000,nodiratime,noexec,rw,nosuid,nodev,auto,async,relatime,nofail
     timezone: Australia/Melbourne
     apt_packages:
       - exfat-fuse
@@ -18,15 +18,12 @@
       - label: TMc
         fstype: hfsplus
         dir: /mnt/tmachine
-        options: "force,{{ common_mount_options }}"
       - label: Backup
         fstype: exfat
         dir: /mnt/backup
-        options: "{{ common_mount_options }}"
       - label: Media
         fstype: exfat
         dir: /mnt/media
-        options: "{{ common_mount_options }}"
     nfs_mounts:
       - /mnt/media
       - /mnt/backup
