@@ -18,12 +18,15 @@
       - label: TMc
         fstype: hfsplus
         dir: /mnt/tmachine
+        options: "force,{{ mount_options }}"
       - label: Backup
         fstype: exfat
         dir: /mnt/backup
+        options: "{{ mount_options }}"
       - label: Media
         fstype: exfat
         dir: /mnt/media
+        options: "{{ mount_options }}"
     nfs_mounts:
       - /mnt/media
       - /mnt/backup
@@ -33,7 +36,7 @@
   user: pi
   tasks:
     - import_tasks: tasks/os.yml
-    - import_tasks: tasks/services.yml
-    - import_tasks: tasks/user.yml
-    - import_tasks: tasks/docker.yml
-    - import_tasks: tasks/timemachine.yml
+      #- import_tasks: tasks/services.yml
+      #- import_tasks: tasks/user.yml
+      #- import_tasks: tasks/docker.yml
+      #- import_tasks: tasks/timemachine.yml
