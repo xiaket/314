@@ -24,3 +24,29 @@
     name: pi
     groups: docker
   become: yes
+
+- name: add pip docker package
+  pip:
+    name:
+      - docker
+      - docker-compose
+  become: yes
+
+- name: add systemd service template
+  copy:
+    src: docker_systemd.service
+    dest: /etc/systemd/system/docker-compose@.service
+  become: yes
+
+- name: create individual service dir
+  file:
+    state: directory
+    path: /etc/docker/compose/
+  become: yes
+
+- name: create cronjob to cleanup docker system every day.
+  cron:
+    name: "docker system cleanup."
+    special_time: daily
+    job: "docker system prune -f"
+  become: yes
