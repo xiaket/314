@@ -1,0 +1,10 @@
+version: '3'
+services:
+  webdav:
+    build: .
+    ports:
+      - "80:80"
+    volumes:
+     - /mnt/media/Webdav:/srv/www
+     - ./httpd.conf:/etc/apache2/httpd.conf
+     - ./htpasswd:/etc/apache/htpasswd

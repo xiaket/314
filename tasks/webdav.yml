@@ -1,0 +1,27 @@
+---
+- name: install passlib so we can generate passwords.
+  pip:
+    name: passlib
+  become: true
+
+- name: upload build context
+  synchronize:
+    src: ../containers/webdav/
+    dest: /etc/docker/compose/webdav/
+  become: true
+
+- htpasswd:
+    path: /etc/docker/compose/webdav/htpasswd
+    name: irene
+    password: "{{ lookup('env','HTPWD_IRENE') }}"
+    owner: root
+    group: www-data
+    mode: 0640
+  become: true
+
+- name: enable webdav service
+  systemd:
+    name: 'docker-compose@webdav'
+    enabled: true
+    state: started
+  become: true

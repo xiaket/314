@@ -4,5 +4,9 @@ set -o errexit
 set -o nounset
 set -o pipefail
 
+if [ -f ./.env ]
+then
+  source ./.env
+fi
 rm -f entrypoint.retry
 ANSIBLE_SSH_PIPELINING=1 ansible-playbook -i "$1", -vv entrypoint.yml || rm -f entrypoint.retry
