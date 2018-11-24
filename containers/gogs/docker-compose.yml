@@ -1,0 +1,12 @@
+version: '3'
+services:
+    gogs:
+      image: gogs/gogs-rpi:latest
+      restart: always
+      ports:
+       - "10022:22"
+       - "3000:3000"
+      environment:
+       - "RUN_CROND=true"
+      volumes:
+       - "/mnt/media/Gogs:/data"

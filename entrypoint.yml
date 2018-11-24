@@ -10,17 +10,18 @@
       - hfsplus
       - hfsprogs
       - hfsutils
+      - python-pip
       - python3
       - sysstat
       - vim
     apt_packages_to_purge:
     mounts:
       - label: TMc
-        fstype: hfsplus
+        fstype: exfat
         dir: /mnt/tmachine
         options: "force,{{ mount_options }}"
       - label: Backup
-        fstype: exfat
+        fstype: ext4
         dir: /mnt/backup
         options: "{{ mount_options }}"
       - label: Media
@@ -36,7 +37,9 @@
   user: pi
   tasks:
     - import_tasks: tasks/os.yml
-      #- import_tasks: tasks/services.yml
-      #- import_tasks: tasks/user.yml
-      #- import_tasks: tasks/docker.yml
-      #- import_tasks: tasks/timemachine.yml
+    - import_tasks: tasks/services.yml
+    - import_tasks: tasks/user.yml
+    - import_tasks: tasks/docker.yml
+    - import_tasks: tasks/webdav.yml
+    - import_tasks: tasks/gogs.yml
+    - import_tasks: tasks/timemachine.yml

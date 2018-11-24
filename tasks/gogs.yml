@@ -1,0 +1,13 @@
+---
+- name: upload build context
+  synchronize:
+    src: ../containers/gogs/
+    dest: /etc/docker/compose/gogs/
+  become: true
+
+- name: enable gogs service
+  systemd:
+    name: 'docker-compose@gogs'
+    enabled: true
+    state: started
+  become: true
