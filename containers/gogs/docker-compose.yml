@@ -4,9 +4,11 @@ services:
       image: gogs/gogs-rpi:latest
       restart: always
       ports:
-       - "10022:22"
-       - "3000:3000"
+        - "127.0.0.1:2022:22"
+        - "3000:3000"
       environment:
-       - "RUN_CROND=true"
+        - "RUN_CROND=true"
+        - "PUID=2022"
+        - "PGID=2022"
       volumes:
-       - "/mnt/media/Gogs:/data"
+        - "/home/git/data:/data"

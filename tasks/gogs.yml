@@ -1,8 +1,84 @@
 ---
-- name: upload build context
+- name: upload docker compose file.
   synchronize:
     src: ../containers/gogs/
     dest: /etc/docker/compose/gogs/
+  become: true
+
+# Make gogs share port 22 with the raspberry Pi.
+- name: create gogs group
+  group:
+    name: git
+    gid: 2022
+  become: true
+
+- name: create git user for gogs
+  user:
+    name: git
+    group: git
+    uid: 2022
+  become: true
+
+- name: create gogs dirs
+  file:
+    path: /home/git/.ssh
+    state: directory
+    owner: git
+    group: git
+  become: true
+
+- name: create symbolic link for gogs workspace
+  file:
+    src: /home/git/data/git/.ssh
+    dest: /home/git/.ssh
+    force: true
+    state: link
+  become: true
+
+- name: Pause till we have it running.
+  pause:
+    prompt: "Please `cd /etc/docker/compose/gogs && docker-compose up` and do the web setup."
+  delegate_to: localhost
+
+- name: create ssh key file for git user
+  command: ssh-keygen -q -t ed25519 -f /home/git/.ssh/ed25519 -C "fake key for gogs" -N ""
+  args:
+    creates: /home/git/.ssh/ed25519
+  become: true
+
+- name: the pub key to the authorized_keys file.
+  copy:
+    src: /home/git/.ssh/ed25519.pub
+    dest: /home/git/.ssh/authorized_keys
+    remote_src: yes
+  become: true
+
+- name: Fix permission for the files
+  file:
+    path: "{{ item }}"
+    owner: git
+    group: git
+  with_items:
+    - /home/git/.ssh/authorized_keys
+    - /home/git/.ssh/ed25519
+    - /home/git/.ssh/ed25519.pub
+  become: true
+
+- name: create gogs script directory on the host.
+  file:
+    path: /app/gogs/
+    state: directory
+    owner: git
+    group: git
+  become: true
+
+- name: Copy the gogs script to the host.
+  copy:
+    src: gogs_gogs
+    dest: /app/gogs/gogs
+    owner: git
+    group: git
+    mode: 0755
   become: true
 
 - name: enable gogs service
