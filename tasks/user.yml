@@ -2,6 +2,7 @@
   file:
     path: '~/.hushlogin'
     state: touch
+  changed_when: false
 
 - name: create ssh dir and control master dir
   file:

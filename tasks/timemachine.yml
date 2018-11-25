@@ -12,45 +12,56 @@
       - libcrack2-dev
     tmachine_dir: /mnt/tmachine
 
+- name: Determine the current version of netatalk
+  shell: "afpd -v | head -n 1 | awk '{print $2}'"
+  register: afpd_version
+  become: yes
+  failed_when: false
+
+- name: set skip
+  set_fact:
+    run_install: True
+  when: >
+      afpd_version.rc != 0 or afpd_version.stdout != version
+
 - name: Download release file
   get_url:
     url: "http://prdownloads.sourceforge.net/netatalk/netatalk-{{ version }}.tar.gz"
     dest: /tmp/netatalk.tgz
-  register: release_download
+  when: run_install is defined
 
 - name: Extract release file
   unarchive:
     src: /tmp/netatalk.tgz
     remote_src: true
     dest: /tmp
-  when: release_download.changed
+  when: run_install is defined
 
 - name: Install dependencies
   apt:
     pkg: "{{ packages }}"
     state: present
   become: yes
-  when: release_download.changed
 
 - name: configure
   command: ./configure --with-init-style=debian-systemd --without-libevent --with-cracklib --enable-krbV-uam --with-pam-confdir=/etc/pam.d --with-dbus-daemon=/usr/bin/dbus-daemon --with-dbus-sysconf-dir=/etc/dbus-1/system.d
   args:
     chdir: "/tmp/netatalk-{{ version }}/"
     creates: "/tmp/netatalk-{{ version }}/Makefile"
-  when: release_download.changed
+  when: run_install is defined
 
 - name: make
   command: make
   args:
     chdir: "/tmp/netatalk-{{ version }}/"
-  when: release_download.changed
+  when: run_install is defined
 
 - name: make install
   command: make
   args:
     chdir: "/tmp/netatalk-{{ version }}/"
   become: yes
-  when: release_download.changed
+  when: run_install is defined
 
 - name: create avahi config file
   copy:
@@ -78,6 +89,7 @@
     state: started
     enabled: true
   become: true
+  when: run_install is defined
   with_items:
     - avahi-daemon
     - netatalk

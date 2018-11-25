@@ -49,7 +49,6 @@
     line: "{{ item }}"
     state: present
   with_items:
-    - 'AllowUsers pi'
     - 'KbdInteractiveAuthentication no'
     - 'PasswordAuthentication no'
     - 'PubkeyAuthentication yes'
@@ -60,6 +59,7 @@
     name: ssh
     state: restarted
   become: true
+  changed_when: false
 
 # DPHYS: swap as a service
 - name: setup swap size

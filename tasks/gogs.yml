@@ -35,10 +35,17 @@
     state: link
   become: true
 
+- name: check /home/git/.ssh/ed25519 file
+  stat:
+    path: /home/git/.ssh/ed25519
+  become: true
+  register: git_private_key
+
 - name: Pause till we have it running.
   pause:
     prompt: "Please `cd /etc/docker/compose/gogs && docker-compose up` and do the web setup."
   delegate_to: localhost
+  when: not git_private_key.stat.exists 
 
 - name: create ssh key file for git user
   command: ssh-keygen -q -t ed25519 -f /home/git/.ssh/ed25519 -C "fake key for gogs" -N ""

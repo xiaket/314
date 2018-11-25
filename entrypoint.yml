@@ -17,11 +17,11 @@
     apt_packages_to_purge:
     mounts:
       - label: TMc
-        fstype: exfat
+        fstype: hfsplus
         dir: /mnt/tmachine
         options: "force,{{ mount_options }}"
       - label: Backup
-        fstype: ext4
+        fstype: exfat
         dir: /mnt/backup
         options: "{{ mount_options }}"
       - label: Media
