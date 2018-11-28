@@ -41,7 +41,10 @@
 - name: create individual service dir
   file:
     state: directory
-    path: /etc/docker/compose/
+    path: "{{ item }}"
+  with_items:
+    - /etc/docker/compose/
+    - /etc/docker/images/
   become: yes
 
 - name: create cronjob to cleanup docker system every day.

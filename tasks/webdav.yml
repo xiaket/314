@@ -25,3 +25,22 @@
     enabled: true
     state: started
   become: true
+
+- name: upload build context
+  synchronize:
+    src: ../containers/ddns/
+    dest: /etc/docker/images/ddns/
+  become: true
+
+- name: Build an image and push it to a private repo
+  docker_image:
+    path: /etc/docker/images/ddns/
+    name: xiaket/ddns
+    tag: latest
+
+- name: Add cron job to update A record of home.xiaket.org
+  cron:
+    name: "Dynamic DNS"
+    special_time: hourly
+    job: "docker run --env-file /etc/docker/images/ddns/.env xiaket/ddns"
+  become: yes
