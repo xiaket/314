@@ -32,6 +32,29 @@
     enabled: true
   become: true
 
+# Samba
+- name: Install samba utilities
+  apt:
+    name:
+      - samba
+      - samba-common-bin
+    state: present
+  become: true
+  register: samba_package
+
+- name: create samba configuration
+  copy:
+    src: samba.conf
+    dest: /etc/samba/smb.conf
+  become: True
+
+- name: restart samba service
+  service:
+    name: smbd
+    state: restarted
+  become: true
+  changed_when: false
+
 # SSH
 - name: configure ssh service - absent
   lineinfile:
