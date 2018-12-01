@@ -4,7 +4,7 @@
     name: passlib
   become: true
 
-- name: upload build context
+- name: upload build context for webdav
   synchronize:
     src: ../containers/webdav/
     dest: /etc/docker/compose/webdav/
@@ -26,17 +26,23 @@
     state: started
   become: true
 
-- name: upload build context
+- name: upload build context for images
   synchronize:
-    src: ../containers/ddns/
-    dest: /etc/docker/images/ddns/
+    src: "../containers/{{ item }}/"
+    dest: "/etc/docker/images/{{ item }}/"
   become: true
+  with_items:
+    - ddns
+    - acmesh
 
-- name: Build an image and push it to a private repo
+- name: Build local images
   docker_image:
-    path: /etc/docker/images/ddns/
-    name: xiaket/ddns
+    path: "/etc/docker/images/{{ item }}/"
+    name: "xiaket/{{ item }}"
     tag: latest
+  with_items:
+    - ddns
+    - acmesh
 
 - name: Add cron job to update A record of home.xiaket.org
   cron:
