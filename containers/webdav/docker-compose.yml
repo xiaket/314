@@ -2,9 +2,13 @@ version: '3'
 services:
   webdav:
     build: .
+    container_name: webdav
     ports:
       - "80:80"
+      - "443:443"
     volumes:
-     - /mnt/media/Webdav:/srv/www
+     - /mnt/media/Webdav:/srv/www/webdav
+     - /tmp/webroot:/srv/www/acme
+     - /var/acme:/etc/certificates
      - ./httpd.conf:/etc/apache2/httpd.conf
-     - ./htpasswd:/etc/apache/htpasswd
+     - ./htpasswd:/etc/apache2/htpasswd

@@ -1,48 +1,15 @@
 ---
-- name: install passlib so we can generate passwords.
-  pip:
-    name: passlib
-  become: true
-
-- name: upload build context for webdav
+- name: upload build context for ddns
   synchronize:
-    src: ../containers/webdav/
-    dest: /etc/docker/compose/webdav/
+    src: "../containers/ddns/"
+    dest: "/etc/docker/images/ddns/"
   become: true
-
-- htpasswd:
-    path: /etc/docker/compose/webdav/htpasswd
-    name: irene
-    password: "{{ lookup('env','HTPWD_IRENE') }}"
-    owner: root
-    group: www-data
-    mode: 0640
-  become: true
-
-- name: enable webdav service
-  systemd:
-    name: 'docker-compose@webdav'
-    enabled: true
-    state: started
-  become: true
-
-- name: upload build context for images
-  synchronize:
-    src: "../containers/{{ item }}/"
-    dest: "/etc/docker/images/{{ item }}/"
-  become: true
-  with_items:
-    - ddns
-    - acmesh
 
 - name: Build local images
   docker_image:
-    path: "/etc/docker/images/{{ item }}/"
-    name: "xiaket/{{ item }}"
+    path: "/etc/docker/images/ddns/"
+    name: "xiaket/ddns"
     tag: latest
-  with_items:
-    - ddns
-    - acmesh
 
 - name: Add cron job to update A record of home.xiaket.org
   cron:
@@ -50,3 +17,85 @@
     special_time: hourly
     job: "docker run --env-file /etc/docker/images/ddns/.env xiaket/ddns"
   become: yes
+
+- name: install passlib so we can generate passwords.
+  pip:
+    name: passlib
+  become: true
+
+- name: upload build context for webdav and acmesh
+  synchronize:
+    src: "../containers/{{ item }}/"
+    dest: "/etc/docker/compose/{{ item }}/"
+  become: true
+  with_items:
+    - webdav
+    - acmesh
+
+- name: generate password file
+  htpasswd:
+    path: /etc/docker/compose/webdav/htpasswd
+    name: irene
+    password: "{{ lookup('env','HTPWD_IRENE') }}"
+    owner: root
+    group: 102
+    mode: 0640
+  become: true
+
+- name: check certificate file
+  stat:
+    path: /var/acme/home.xiaket.org/home.xiaket.org.key
+  become: true
+  register: webdav_ssl_key
+
+- name: create hard link for httpd.conf to start HTTP server
+  file:
+    src: /etc/docker/compose/webdav/httpd.conf.http
+    dest: /etc/docker/compose/webdav/httpd.conf
+    force: true
+    state: hard
+  become: true
+  when: not webdav_ssl_key.stat.exists
+
+- name: create acme data dir
+  file:
+    path: /var/acme
+    state: directory
+  become: true
+
+- name: enable webdav/acmesh service
+  systemd:
+    name: "docker-compose@{{ item }}"
+    enabled: true
+    state: started
+  become: true
+  with_items:
+    - webdav
+    - acmesh
+
+- name: Generate https certificate for home.xiaket.org
+  command: docker exec acme --issue -d home.xiaket.org  -w /tmp/webroot
+  args:
+    creates: /var/acme/home.xiaket.org/home.xiaket.org.key
+  become: true
+
+- name: Renew https certificate for home.xiaket.org
+  command: docker exec acme --renew --force -d home.xiaket.org  -w /tmp/webroot
+  become: true
+  when: false
+  changed_when: false
+
+- name: create hard link for httpd.conf to start HTTPS server
+  file:
+    src: /etc/docker/compose/webdav/httpd.conf.https
+    dest: /etc/docker/compose/webdav/httpd.conf
+    force: true
+    state: hard
+  become: true
+
+- name: restart webdav service
+  systemd:
+    name: "docker-compose@webdav"
+    enabled: true
+    state: restarted
+  become: true

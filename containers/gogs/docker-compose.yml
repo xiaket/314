@@ -3,6 +3,7 @@ services:
     gogs:
       image: gogs/gogs-rpi:latest
       restart: always
+      container_name: gogs
       ports:
         - "127.0.0.1:2022:22"
         - "3000:3000"

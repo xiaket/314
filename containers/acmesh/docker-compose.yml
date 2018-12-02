@@ -1,0 +1,9 @@
+version: '3'
+services:
+  acme:
+    build: .
+    command: daemon
+    container_name: acme
+    volumes:
+     - /var/acme/:/acme.sh/:rw
+     - /tmp/webroot:/tmp/webroot:rw
