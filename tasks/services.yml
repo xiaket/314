@@ -119,3 +119,23 @@
     state: restarted
   become: true
   when: sysstat_service.changed
+
+# ddns
+- name: upload build context for ddns
+  synchronize:
+    src: "../containers/ddns/"
+    dest: "/etc/docker/images/ddns/"
+  become: true
+
+- name: Build local images
+  docker_image:
+    path: "/etc/docker/images/ddns/"
+    name: "xiaket/ddns"
+    tag: latest
+
+- name: Add cron job to update A record of home.xiaket.org
+  cron:
+    name: "Dynamic DNS"
+    special_time: hourly
+    job: "docker run --env-file /etc/docker/images/ddns/.env xiaket/ddns"
+  become: yes
