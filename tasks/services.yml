@@ -139,3 +139,17 @@
     special_time: hourly
     job: "docker run --env-file /etc/docker/images/ddns/.env xiaket/ddns"
   become: yes
+
+# rsync whip
+- name: copy scripts over
+  synchronize:
+    src: "../scripts/"
+    dest: /usr/local/bin/
+  become: True
+
+- name: run rsync whip hourly
+  cron:
+    name: "Rsync whip"
+    special_time: hourly
+    job: /usr/local/bin/rsync_whip
+    user: pi

@@ -1,0 +1,22 @@
+#!/bin/bash
+
+set -o errexit
+set -o nounset
+set -o pipefail
+
+if ps auxww | grep rsync | grep -q transmission
+then
+  # rsync running, don't do anything
+  exit 0
+fi
+
+for dir in `cat /etc/rsync.dirs`
+do
+  cd $dir
+  if [ -n $dir/candidates ]
+  then
+    echo "will run in $dir"
+    rm -f ./sync.log
+    bash sync.sh > sync.log
+  fi
+done
