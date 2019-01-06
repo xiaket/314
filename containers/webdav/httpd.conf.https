@@ -3,7 +3,6 @@ ServerRoot "/var/www/"
 ServerName home.xiaket.org
 User apache
 Group apache
-Listen *:80
 Listen *:443
 TypesConfig /etc/apache2/mime.types
 PidFile logs/httpd.pid
@@ -43,14 +42,23 @@ SSLStaplingCache        shmcb:/var/run/ocsp(128000)
   Require all denied
 </Directory>
 
-<VirtualHost *:80>
-  ServerName home.xiaket.org
-  Redirect "/" "https://home.xiaket.org/"
+<VirtualHost *:443>
+    # Default.
+    ServerName www.example.com
+    ServerAlias www.example.com
+    SSLEngine on
+    # This is not good for https traffic since the certificate does not match,
+    # but for my use case(have a default null site), it's good enough.
+    SSLCertificateFile      /etc/certificates/home.xiaket.org/home.xiaket.org.cer
+    SSLCertificateKeyFile   /etc/certificates/home.xiaket.org/home.xiaket.org.key
+    SSLCACertificateFile    /etc/certificates/home.xiaket.org/fullchain.cer
+    Redirect permanent / https://example.com
 </VirtualHost>
 
 DavLockDB /tmp/DavLock
 <VirtualHost *:443>
   ServerAdmin xiaket@gmail.com
+  ServerName home.xiaket.org
   DocumentRoot "/srv/www/webdav/"
 
   SSLEngine on

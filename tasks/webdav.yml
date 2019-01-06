@@ -22,6 +22,7 @@
     group: 102
     mode: 0640
   become: true
+  changed_when: false
 
 - name: check certificate file
   stat:
