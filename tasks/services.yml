@@ -1,60 +1,4 @@
 ---
-# NFS
-- name: Install NFS utilities
-  apt:
-    name:
-      - nfs-common
-      - nfs-kernel-server
-    state: present
-  become: true
-  register: nfs_package
-
-- name: configure nfs service
-  lineinfile:
-    path: /etc/exports
-    line: "{{ item }} {{ ansible_default_ipv4.network }}/24(rw,sync,wdelay,insecure,anonuid=1000,anongid=1000,all_squash)"
-    state: present
-    create: true
-  with_items: "{{ nfs_mounts }}"
-  become: yes
-
-- name: Restart NFS if required.
-  service:
-    name: nfs-kernel-server
-    state: restarted
-  become: true
-  when: nfs_package.changed
-
-- name: Ensure nfs is running.
-  service:
-    name: nfs-kernel-server
-    state: started
-    enabled: true
-  become: true
-
-# Samba
-- name: Install samba utilities
-  apt:
-    name:
-      - samba
-      - samba-common-bin
-    state: present
-  become: true
-  register: samba_package
-
-- name: create samba configuration
-  copy:
-    src: samba.conf
-    dest: /etc/samba/smb.conf
-  become: True
-
-- name: restart samba service
-  service:
-    name: smbd
-    state: restarted
-  become: true
-  changed_when: false
-
 # SSH
 - name: configure ssh service - absent
   lineinfile:
@@ -119,19 +63,6 @@
     state: restarted
   become: true
   when: sysstat_service.changed
-
-# ddns
-- name: upload build context for ddns
-  synchronize:
-    src: "../containers/ddns/"
-    dest: "/etc/docker/images/ddns/"
-  become: true
-
-- name: Build local images
-  docker_image:
-    path: "/etc/docker/images/ddns/"
-    name: "xiaket/ddns"
-    tag: latest
 
 - name: Add cron job to update A record of home.xiaket.org
   cron:

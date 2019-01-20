@@ -41,11 +41,31 @@
 - name: create individual service dir
   file:
     state: directory
-    path: "{{ item }}"
-  with_items:
-    - /etc/docker/compose/
-    - /etc/docker/images/
+    path: /etc/docker/compose/
   become: yes
+
+- name: upload build context for containers
+  synchronize:
+    src: "../containers/{{ item }}/"
+    dest: "/etc/docker/compose/{{ item }}/"
+  become: true
+  with_items:
+    - acmesh
+    - ddns
+    - webdav
+    - samba
+
+- name: Build local images
+  docker_image:
+    path: "/etc/docker/compose/{{ item }}/"
+    name: "xiaket/{{ item }}"
+    tag: latest
+  become: true
+  with_items:
+    - acmesh
+    - ddns
+    - webdav
+    - samba
 
 - name: create cronjob to cleanup docker system every day.
   cron:
@@ -53,3 +73,10 @@
     special_time: daily
     job: "docker system prune -f"
   become: yes
+
+- name: restart samba service
+  systemd:
+    name: "docker-compose@samba"
+    enabled: true
+    state: restarted
+  become: true
