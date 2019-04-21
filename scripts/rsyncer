@@ -1,0 +1,64 @@
+#!/usr/bin/env python3
+import copy
+import logging
+import os
+import shlex
+import subprocess
+
+import yaml
+
+CONF = "/etc/rsyncer.yml"
+
+logging.basicConfig(format="%(asctime)s: %(message)s", level=logging.DEBUG)
+
+
+class Rsync:
+    def __init__(self):
+        if not os.path.isfile(CONF):
+            logging.info("Empty configuration.")
+            self.targets = {}
+        else:
+            with open(CONF) as fobj:
+                conf = yaml.load(fobj, Loader=yaml.SafeLoader)
+            logging.info("Loaded configuration: %s", conf)
+            self.destinations = conf["destinations"]
+            self.targets = conf["targets"]
+
+    def save(self):
+        data = {"destinations": self.destinations, "targets": self.targets}
+        logging.info("Saving configuration: %s", data)
+        with open(CONF, 'w') as fobj:
+            conf = yaml.dump(data, fobj)
+
+    def download(self, target, item):
+        command = [
+            "rsync",
+            "--progress",
+            "--bwlimit",
+            "750",
+            "--partial",
+            "--exclude='*.part'",
+            "-av",
+            "-e",
+            "ssh",
+            "xiaket.org:/transmission/downloads/%s" % shlex.quote(item),
+            ".",
+        ]
+        logging.info("Running rsync: %s", " ".join(command))
+        subprocess.run(command, cwd=self.destinations[target])
+        logging.info("Downloaded %s: %s", target, item)
+
+    def main(self):
+        pairs = copy.deepcopy(self.targets)
+        for target, items in pairs.items():
+            if not items:
+                continue
+            for item in items:
+                self.download(target, item)
+                self.targets[target].remove(item)
+                self.save()
+
+
+if __name__ == "__main__":
+    rsync = Rsync()
+    rsync.main()

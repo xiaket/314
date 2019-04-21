@@ -78,9 +78,24 @@
     dest: /usr/local/bin/
   become: True
 
-- name: run rsync whip hourly
+- name: add PyYAML for python3
+  pip:
+    executable: pip3
+    name:
+      - PyYAML
+  become: yes
+
+- name: create cache_install_dir
+  file:
+    state: touch
+    owner: pi
+    group: pi
+    path: /etc/rsyncer.yml
+  become: yes
+
+- name: run rsyncer every 5 minutes
   cron:
-    name: "Rsync whip"
-    special_time: hourly
-    job: /usr/local/bin/rsync_whip
+    name: "Rsyncer"
+    minute: "*/5"
+    job: /usr/local/bin/rsyncer
     user: pi
