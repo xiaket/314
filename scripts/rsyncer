@@ -4,16 +4,23 @@ import logging
 import os
 import shlex
 import subprocess
+import sys
 
 import yaml
 
 CONF = "/etc/rsyncer.yml"
+LOCK = "/var/lock/rsync.lock"
 
 logging.basicConfig(format="%(asctime)s: %(message)s", level=logging.DEBUG)
 
 
 class Rsync:
     def __init__(self):
+        if os.path.isfile(LOCK):
+            logging.info("Lock exists, exiting.")
+            sys.exit(0)
+        with open(LOCK, 'w') as fobj:
+            fobj.write("")
         if not os.path.isfile(CONF):
             logging.info("Empty configuration.")
             self.targets = {}
@@ -57,6 +64,7 @@ class Rsync:
                 self.download(target, item)
                 self.targets[target].remove(item)
                 self.save()
+        os.remove(LOCK)
 
 
 if __name__ == "__main__":
