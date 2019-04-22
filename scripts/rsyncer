@@ -52,7 +52,11 @@ class Rsync:
             ".",
         ]
         logging.info("Running rsync: %s", " ".join(command))
-        subprocess.run(command, cwd=self.destinations[target])
+        try:
+            subprocess.run(command, cwd=self.destinations[target])
+        except:
+            os.remove(LOCK)
+            sys.exit(1)
         logging.info("Downloaded %s: %s", target, item)
 
     def main(self):
