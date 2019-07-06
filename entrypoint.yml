@@ -28,6 +28,7 @@
         dir: /mnt/media
         options: "uid=1000,gid=1000,{{ mount_options }}"
     install_cache_dir: /opt/install
+    reboot: false
     swap_size: 4096
   hosts: all
   user: pi

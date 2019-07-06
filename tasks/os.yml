@@ -19,7 +19,7 @@
 
 - name: reboot
   shell: "sleep 3 && reboot"
-  when: package_updates.changed
+  when: package_updates.changed and reboot
   async: 1
   poll: 0
   become: yes
@@ -30,7 +30,7 @@
     sleep: 2
     delay: 5
     timeout: 300
-  when: package_updates.changed
+  when: package_updates.changed and reboot
 
 - name: install packages
   apt:
