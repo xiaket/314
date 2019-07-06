@@ -13,7 +13,7 @@
 - name: Update All Packages
   apt:
     update_cache: yes
-    upgrade: yes
+    upgrade: "yes"
   become: yes
   register: package_updates
 
