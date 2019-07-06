@@ -85,17 +85,9 @@
       - PyYAML
   become: yes
 
-- name: create cache_install_dir
-  file:
-    state: touch
-    owner: pi
-    group: pi
-    path: /etc/rsyncer.yml
-  become: yes
-
-- name: run rsyncer every 5 minutes
+- name: run rsyncer every minutes
   cron:
     name: "Rsyncer"
-    minute: "*/5"
+    minute: "*"
     job: /usr/local/bin/rsyncer
     user: pi
