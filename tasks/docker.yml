@@ -57,9 +57,12 @@
 
 - name: Build local images
   docker_image:
-    path: "/etc/docker/compose/{{ item }}/"
     name: "xiaket/{{ item }}"
     tag: latest
+    build:
+      path: "/etc/docker/compose/{{ item }}/"
+      pull: yes
+    source: build
   become: true
   with_items:
     - acmesh
