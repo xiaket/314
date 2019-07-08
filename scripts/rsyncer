@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 import copy
+import errno
+import functools
 import logging
 import os
 import shlex
@@ -8,41 +10,64 @@ import sys
 
 import yaml
 
-CONF = "/etc/rsyncer.yml"
-LOCK = "/var/lock/rsync.lock"
+CONF = os.path.expanduser("~/rsyncer.yml")
+LOCK = os.path.expanduser("~/rsyncer.lock")
 
-logging.basicConfig(format="%(asctime)s: %(message)s", level=logging.DEBUG)
+logging.basicConfig(
+    filename=os.path.expanduser("~/rsyncer.log"),
+    format="[%(pid)s]%(asctime)s: %(message)s",
+    level=logging.DEBUG,
+)
+
+log = functools.partial(logging.info, extra={'pid': os.getpid()})
 
 
 class Rsync:
-    def __init__(self):
-        if os.path.isfile(LOCK):
-            logging.info("Lock exists, exiting.")
+    def lock(self):
+        try:
+            self.fd = os.open(LOCK, os.O_CREAT|os.O_EXCL|os.O_RDWR)
+            log("Acquired Lock.")
+        except OSError as err:
+            if err.errno != errno.EEXIST:
+                raise
+            log("Lock exists, exiting.")
             sys.exit(0)
-        with open(LOCK, 'w') as fobj:
-            fobj.write("")
-        if not os.path.isfile(CONF):
-            logging.info("Empty configuration.")
-            self.targets = {}
-        else:
-            with open(CONF) as fobj:
-                conf = yaml.load(fobj, Loader=yaml.SafeLoader)
-            logging.info("Loaded configuration: %s", conf)
-            self.destinations = conf["destinations"]
-            self.targets = conf["targets"]
 
-    def save(self):
-        data = {"destinations": self.destinations, "targets": self.targets}
-        logging.info("Saving configuration: %s", data)
+    def unlock(self):
+        log("Removing lock")
+        os.close(self.fd)
+        os.remove(LOCK)
+        log("Removed lock")
+
+    def read(self):
+        if not os.path.isfile(CONF):
+            log("Empty configuration.")
+            sys.exit(0)
+        with open(CONF) as fobj:
+            conf = yaml.load(fobj, Loader=yaml.SafeLoader)
+            log("Loaded configuration: %s", conf)
+        self.destinations = conf["destinations"]
+        self.queue = conf["queue"]
+
+    def remove(self, line):
+        """Remove a line from queue"""
+        self.read()
+        self.queue.remove(line)
+        self.write()
+
+    def write(self):
+        data = {"destinations": self.destinations, "queue": self.queue}
+        log("Saving configuration: %s", data)
         with open(CONF, 'w') as fobj:
             conf = yaml.dump(data, fobj)
+        log("Saved configuration: %s", data)
 
     def download(self, target, item):
         command = [
             "rsync",
             "--progress",
             "--bwlimit",
-            "750",
+            "1250",
             "--partial",
             "--exclude='*.part'",
             "-av",
@@ -51,24 +76,22 @@ class Rsync:
             "xiaket.org:/transmission/downloads/%s" % shlex.quote(item),
             ".",
         ]
-        logging.info("Running rsync: %s", " ".join(command))
+        log("Running rsync: %s", " ".join(command))
         try:
             subprocess.run(command, cwd=self.destinations[target])
         except:
-            os.remove(LOCK)
+            self.unlock()
             sys.exit(1)
-        logging.info("Downloaded %s: %s", target, item)
+        log("Downloaded %s: %s", target, item)
 
     def main(self):
-        pairs = copy.deepcopy(self.targets)
-        for target, items in pairs.items():
-            if not items:
-                continue
-            for item in items:
-                self.download(target, item)
-                self.targets[target].remove(item)
-                self.save()
-        os.remove(LOCK)
+        self.lock()
+        self.read()
+        for line in copy.deepcopy(self.queue):
+            item, target = line.rsplit(":", 1)
+            self.download(target, item)
+            self.remove(line)
+        self.unlock()
 
 
 if __name__ == "__main__":
