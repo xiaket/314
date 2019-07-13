@@ -1,4 +1,4 @@
-FROM balenalib/rpi-alpine:3.8
+FROM arm32v7/alpine:3.10
 
 RUN apk add --update \
     samba-common-tools \

@@ -1,4 +1,4 @@
-FROM resin/armhf-alpine
+FROM arm32v7/alpine:3.10
 
 RUN apk add --update \
     python3 \

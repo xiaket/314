@@ -1,4 +1,4 @@
-FROM resin/armhf-alpine:3.6
+FROM arm32v7/alpine:3.10
 
 RUN apk update -f \
   && apk --no-cache add -f \
