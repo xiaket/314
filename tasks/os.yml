@@ -17,9 +17,16 @@
   become: yes
   register: package_updates
 
+- name: ask user for confirmation before reboot
+  pause:
+    prompt: "Do you want to reboot (yes/no)?"
+  when: package_updates.changed
+  register: reboot
+  delegate_to: localhost
+
 - name: reboot
   shell: "sleep 3 && reboot"
-  when: package_updates.changed and reboot
+  when: package_updates.changed and reboot.user_input | bool
   async: 1
   poll: 0
   become: yes
@@ -30,7 +37,7 @@
     sleep: 2
     delay: 5
     timeout: 300
-  when: package_updates.changed and reboot
+  when: package_updates.changed and reboot.user_input | bool
 
 - name: install packages
   apt:
