@@ -34,10 +34,8 @@ class Rsync:
             sys.exit(0)
 
     def unlock(self):
-        log("Removing lock")
         os.close(self.fd)
         os.remove(LOCK)
-        log("Removed lock")
 
     def read(self):
         if not os.path.isfile(CONF):
@@ -45,7 +43,6 @@ class Rsync:
             sys.exit(0)
         with open(CONF) as fobj:
             conf = yaml.load(fobj, Loader=yaml.SafeLoader)
-            log("Loaded configuration: %s", conf)
         self.destinations = conf["destinations"]
         self.queue = conf["queue"]
 
@@ -60,7 +57,6 @@ class Rsync:
         log("Saving configuration: %s", data)
         with open(CONF, 'w') as fobj:
             conf = yaml.dump(data, fobj)
-        log("Saved configuration: %s", data)
 
     def download(self, target, item):
         command = [

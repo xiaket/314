@@ -91,3 +91,25 @@
     minute: "*"
     job: /usr/local/bin/rsyncer
     user: pi
+
+# samba
+- name: copy avahi configuration file over
+  copy:
+    src: timemachine.service
+    dest: /etc/avahi/services/timemachine.service
+  become: yes
+
+- name: copy samba configuration file over
+  copy:
+    src: smb.conf
+    dest: /etc/samba/smb.conf
+  become: yes
+
+- name: restart avahi/samba service
+  service:
+    name: "{{ item }}"
+    state: started
+  become: true
+  with_items:
+    - avahi-daemon
+    - smbd

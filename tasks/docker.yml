@@ -53,7 +53,6 @@
     - acmesh
     - ddns
     - webdav
-    - samba
 
 - name: Build local images
   docker_image:
@@ -68,7 +67,6 @@
     - acmesh
     - ddns
     - webdav
-    - samba
 
 - name: create cronjob to cleanup docker system every day.
   cron:
@@ -76,10 +74,3 @@
     special_time: daily
     job: "docker system prune -f"
   become: yes
-
-- name: restart samba service
-  systemd:
-    name: "docker-compose@samba"
-    enabled: true
-    state: restarted
-  become: true

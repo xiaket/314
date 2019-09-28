@@ -11,21 +11,19 @@
       - python-setuptools
       - python3
       - python3-pip
+      - samba
+      - samba-vfs-modules
       - sysstat
       - neovim
     apt_packages_to_purge:
     mounts:
-      - label: TMc
+      - label: 4
         fstype: ext4
-        dir: /mnt/tmachine
-        options: "{{ mount_options }}"
-      - label: Backup
+        dir: /mnt/4
+        options: "defaults,noatime"
+      - label: 8
         fstype: exfat
-        dir: /mnt/backup
-        options: "uid=1000,gid=1000,{{ mount_options }}"
-      - label: Media
-        fstype: exfat
-        dir: /mnt/media
+        dir: /mnt/8
         options: "uid=1000,gid=1000,{{ mount_options }}"
     install_cache_dir: /opt/install
     swap_size: 4096
@@ -35,5 +33,5 @@
     - import_tasks: tasks/os.yml
     - import_tasks: tasks/docker.yml
     - import_tasks: tasks/services.yml
-    - import_tasks: tasks/user.yml
-    - import_tasks: tasks/webdav.yml
+    #- import_tasks: tasks/user.yml
+    #- import_tasks: tasks/webdav.yml
