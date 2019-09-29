@@ -31,7 +31,6 @@
   user: pi
   tasks:
     - import_tasks: tasks/os.yml
+    - import_tasks: tasks/user.yml
     - import_tasks: tasks/docker.yml
     - import_tasks: tasks/services.yml
-    #- import_tasks: tasks/user.yml
-    #- import_tasks: tasks/webdav.yml

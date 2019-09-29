@@ -64,11 +64,18 @@
   become: true
   when: sysstat_service.changed
 
+- name: add env file for ddns service
+  lineinfile:
+    path: /etc/docker/compose/ddns/.env
+    line: "NAMESILO_APIKEY={{ lookup('env','NAMESILO_APIKEY') }}"
+    create: yes
+  become: true
+
 - name: Add cron job to update A record of home.xiaket.org
   cron:
     name: "Dynamic DNS"
     special_time: hourly
-    job: "docker run --env-file /etc/docker/images/ddns/.env xiaket/ddns"
+    job: "docker run --env-file /etc/docker/compose/ddns/.env xiaket/ddns"
   become: yes
 
 # rsync whip
