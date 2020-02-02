@@ -50,9 +50,7 @@
     dest: "/etc/docker/compose/{{ item }}/"
   become: true
   with_items:
-    - acmesh
     - ddns
-    - webdav
 
 - name: Build local images
   docker_image:
@@ -64,9 +62,7 @@
     source: build
   become: true
   with_items:
-    - acmesh
     - ddns
-    - webdav
 
 - name: create cronjob to cleanup docker system every day.
   cron:
