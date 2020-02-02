@@ -12,6 +12,8 @@ import yaml
 
 CONF = os.path.expanduser("~/rsyncer.yml")
 LOCK = os.path.expanduser("~/rsyncer.lock")
+LIMIT = "1250"
+#LIMIT = "5250"
 
 logging.basicConfig(
     filename=os.path.expanduser("~/rsyncer.log"),
@@ -63,7 +65,7 @@ class Rsync:
             "rsync",
             "--progress",
             "--bwlimit",
-            "1250",
+            LIMIT,
             "--partial",
             "--exclude='*.part'",
             "-av",
