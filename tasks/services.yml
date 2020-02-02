@@ -1,4 +1,39 @@
 ---
+# NFS		
+- name: Install NFS utilities		
+  apt:		
+    name:		
+      - nfs-common		
+      - nfs-kernel-server		
+    state: present		
+  become: true		
+  register: nfs_package		
+
+- name: configure nfs service		
+  lineinfile:		
+    path: /etc/exports		
+    line: "{{ item }} {{ ansible_default_ipv4.network }}/24(rw,sync,wdelay,insecure,anonuid=1000,anongid=1000,all_squash)"		
+    state: present		
+    create: true		
+  with_items:
+    - /mnt/4
+    - /mnt/8
+  become: yes		
+
+- name: Restart NFS if required.		
+  service:		
+    name: nfs-kernel-server		
+    state: restarted		
+  become: true		
+  when: nfs_package.changed		
+
+- name: Ensure nfs is running.		
+  service:		
+    name: nfs-kernel-server		
+    state: started		
+    enabled: true		
+  become: true
+
 # SSH
 - name: configure ssh service - absent
   lineinfile:
