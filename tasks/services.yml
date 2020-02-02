@@ -99,6 +99,15 @@
     job: /usr/local/bin/rsyncer
     user: pi
 
+# a poor man's multi disk backup
+- name: run back-upper every minutes
+  cron:
+    name: "Image backup service"
+    minute: "*"
+    job: /usr/local/bin/back-upper >/tmp/back-upper.log 2>&1
+    user: root
+  become: yes
+
 # samba
 - name: copy avahi configuration file over
   copy:
