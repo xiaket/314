@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 set -o errexit
 set -o nounset
@@ -8,6 +8,12 @@ if [ -f ./.env ]
 then
   source ./.env
 fi
+
 rm -f entrypoint.retry
-#ANSIBLE_SSH_PIPELINING=1 ansible-playbook -i "$1", -vvvv -C entrypoint.yml || rm -f entrypoint.retry
-ANSIBLE_SSH_PIPELINING=1 ansible-playbook -i "$1", -v entrypoint.yml || rm -f entrypoint.retry
+
+if [ "$1" = "check" ]
+then
+  ANSIBLE_SSH_PIPELINING=1 ansible-playbook -i "$2", -vvvv -C entrypoint.yml || rm -f entrypoint.retry
+else
+  ANSIBLE_SSH_PIPELINING=1 ansible-playbook -i "$2", -v entrypoint.yml || rm -f entrypoint.retry
+fi

@@ -1,4 +1,4 @@
-FROM arm32v7/alpine:3.10
+FROM alpine:3.12
 
 RUN apk add --update \
     python3 \

@@ -12,7 +12,7 @@
 - name: configure nfs service		
   lineinfile:		
     path: /etc/exports		
-    line: "{{ item }} {{ ansible_default_ipv4.network }}/24(rw,sync,wdelay,insecure,anonuid=1000,anongid=1000,all_squash)"		
+    line: "{{ item }} {{ ansible_default_ipv4.network }}/24(rw,sync,wdelay,no_subtree_check,insecure,anonuid=1000,anongid=1000,all_squash)"		
     state: present		
     create: true		
   with_items:

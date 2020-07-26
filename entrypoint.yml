@@ -4,17 +4,19 @@
     mount_options: nodiratime,noexec,rw,nosuid,nodev,auto,async,relatime,nofail
     timezone: Australia/Melbourne
     apt_packages:
+      - avahi-daemon
+      - avahi-dnsconfd
+      - dphys-swapfile
       - exfat-fuse
       - exfat-utils
       - git
-      - python-pip
-      - python-setuptools
+      - neovim
+      - net-tools
       - python3
       - python3-pip
       - samba
       - samba-vfs-modules
       - sysstat
-      - neovim
     apt_packages_to_purge:
     mounts:
       - label: 4

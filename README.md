@@ -4,5 +4,5 @@ Before running the script, make sure you had copied your ssh public key over.
 
 Services includes:
   - docker
-  - samba (File share in LAN)
-  - acmesh (https certificate)
+  - samba (File share in LAN) with TimeMachine support
+  - photoprism
