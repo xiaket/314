@@ -132,7 +132,7 @@
     name: "Rsyncer"
     minute: "*"
     job: /usr/local/bin/rsyncer
-    user: pi
+    user: "{{ ansible_user_id }}"
 
 # a poor man's multi disk backup
 - name: run back-upper every minutes

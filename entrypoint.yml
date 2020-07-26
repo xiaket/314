@@ -28,7 +28,7 @@
     install_cache_dir: /opt/install
     swap_size: 4096
   hosts: all
-  user: pi
+  user: ubuntu
   tasks:
     - import_tasks: tasks/os.yml
     - import_tasks: tasks/user.yml

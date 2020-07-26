@@ -19,9 +19,9 @@
     state: started
   become: yes
 
-- name: Add pi to the docker group
+- name: "Add {{ ansible_user_id }} to the docker group"
   user:
-    name: pi
+    name: "{{ ansible_user_id }}"
     groups: docker
   become: yes
 
