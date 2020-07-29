@@ -1,0 +1,28 @@
+version: '3.3'
+
+services:
+  photoprism:
+    image: photoprism/photoprism-arm64:latest
+    security_opt:
+      - seccomp:unconfined
+    restart: always
+    ports:
+      - 80:2342
+    healthcheck:
+      test: "photoprism status"
+      interval: 300s
+      timeout: 30s
+      retries: 5
+    environment:
+      PHOTOPRISM_STORAGE_PATH: /photoprism/storage
+      PHOTOPRISM_SETTINGS_HIDDEN: "true"
+      PHOTOPRISM_SIDECAR_YAML: "true"
+      PHOTOPRISM_PUBLIC: "true"
+    volumes:
+      - "/mnt/8/图片/.data:/photoprism/storage"
+      - "/mnt/8/图片:/photoprism/originals"
+      - "/mnt/8/图片/.data/import:/photoprism/import"
+
+volumes:
+  photoprism-storage:
+    driver: local

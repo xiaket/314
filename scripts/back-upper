@@ -27,6 +27,8 @@ class Rsync:
             "rsync",
             "--progress",
             "-av",
+            "--exclude",
+            ".data",
             "/mnt/8/图片/",
             "/mnt/4/Themes/Pictures/图片/",
         ]

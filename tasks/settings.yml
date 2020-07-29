@@ -1,0 +1,30 @@
+theme: raspberry
+language: zh
+templates:
+  default: index.tmpl
+maps:
+  animate: 2500
+  style: topo
+features:
+  upload: true
+  download: true
+  archive: true
+  private: true
+  review: true
+  files: true
+  moments: false
+  labels: true
+  places: true
+  edit: true
+  share: false
+  library: true
+  import: true
+  logs: true
+import:
+  path: /
+  move: true
+index:
+  path: /
+  convert: true
+  rescan: false
+  sequences: true

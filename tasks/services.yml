@@ -164,3 +164,25 @@
   with_items:
     - avahi-daemon
     - smbd
+
+# photoprism
+- name: create data dirs for photoprism
+  file:
+    state: directory
+    path: "/mnt/8/图片/.data/{{ item }}"
+  with_items:
+    - import
+    - settings
+
+- name: Copy photoprism config over.
+  copy:
+    src: settings.yml
+    dest: /mnt/8/图片/.data/settings/settings.yml
+  become: yes
+
+- name: Enable photoprism service
+  service:
+    name: "docker-compose@photoprism"
+    enabled: true
+    state: started
+  become: true

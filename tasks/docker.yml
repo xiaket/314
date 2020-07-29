@@ -51,6 +51,7 @@
   become: true
   with_items:
     - ddns
+    - photoprism
 
 - name: Build local images
   docker_image:
