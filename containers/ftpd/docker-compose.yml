@@ -1,0 +1,14 @@
+version: '3.7'
+
+services:
+  proftpd:
+    image: proftpd:kai
+    build: .
+    network_mode: "host"
+    container_name: proftpd
+    restart: unless-stopped
+    environment:
+      FTP_LIST: "irene:irene"
+      #USERADD_OPTIONS: "-o --gid 33 --uid 33"
+    volumes:
+      - "//mnt/8/夏疏影/manga:/home/irene"
